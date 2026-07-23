@@ -3,6 +3,7 @@
 import sys
 import os
 
+
 PROJECT_ROOT = os.path.dirname(
     os.path.dirname(
         os.path.abspath(__file__)
@@ -15,18 +16,9 @@ sys.path.insert(
 )
 
 
-from pie_ui.display import Display
-from pie_core.logger import Logger
+from pie_core.boot import BootManager
 
 
-log = Logger()
+boot = BootManager()
 
-display = Display()
-
-log.info(
-    f"Display detected: {display.info()}"
-)
-
-print(
-    display.info()
-)
+boot.start()
