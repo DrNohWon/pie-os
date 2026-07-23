@@ -7,13 +7,17 @@ ROOT = os.path.dirname(
     )
 )
 
-sys.path.insert(0, ROOT)
+sys.path.insert(
+    0,
+    ROOT
+)
 
 
 from pie_core.input import TouchInput
 
 
 touch = TouchInput()
+
 
 print("Touch debug running")
 print("Tap around the screen")
