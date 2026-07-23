@@ -1,16 +1,17 @@
 """
 P.I.E. UI Engine
 
-Main graphics loop.
-Uses pygame as a drawing engine
-and outputs directly to framebuffer.
+Software rendered UI engine.
 """
 
 import pygame
-import time
 
 from pie_ui.renderer import Renderer
 from pie_ui.framebuffer import FrameBuffer
+
+from pie_ui.screens.manager import ScreenManager
+from pie_ui.screens.home import HomeScreen
+
 
 
 class UIEngine:
@@ -21,81 +22,86 @@ class UIEngine:
         pygame.init()
 
 
-        # Off-screen drawing surface
-        self.screen = pygame.Surface(
-            (480, 320)
+        # Initialize pygame event system
+        pygame.display.set_mode(
+            (
+                1,
+                1
+            ),
+            pygame.NOFRAME
         )
 
 
-        # Renderer layer
+        self.surface = pygame.Surface(
+            (
+                480,
+                320
+            )
+        )
+
+
         self.renderer = Renderer(
-            self.screen
+            self.surface
         )
 
 
-        # Direct framebuffer output
         self.fb = FrameBuffer(
             "/dev/fb1"
         )
 
 
-        self.clock = pygame.time.Clock()
+        self.screen_manager = ScreenManager()
 
 
-        self.running = True
+        self.screen_manager.set_screen(
+            HomeScreen(
+                self.renderer
+            )
+        )
 
 
 
     def run(self):
 
-        font = pygame.font.SysFont(
-            "DejaVuSans",
-            28
-        )
+        clock = pygame.time.Clock()
 
 
-        while self.running:
+        running = True
+
+
+        while running:
 
 
             for event in pygame.event.get():
 
                 if event.type == pygame.QUIT:
 
-                    self.running = False
+                    running = False
 
 
 
-            # Background
+            self.screen_manager.handle_events()
+
+
             self.renderer.clear(
-                (0,0,0)
+                (
+                    0,
+                    0,
+                    0
+                )
             )
 
 
-            # Boot title
-            self.renderer.text(
-                "P.I.E.",
-                (165,80),
-                font,
-                (255,255,255)
-            )
+            self.screen_manager.draw()
 
 
-            # Status
-            self.renderer.text(
-                "Starting...",
-                (130,140),
-                font,
-                (180,180,180)
-            )
-
-
-            # Push pixels to SPI screen
             self.fb.write(
-                self.screen
+                self.surface
             )
 
 
-            self.clock.tick(30)
+            clock.tick(30)
+
 
 
         self.fb.close()

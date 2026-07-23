@@ -1,23 +1,27 @@
 """
-P.I.E. Input Manager
+P.I.E. Touch Input Handler
 
-Reads Linux evdev touchscreen events.
+ADS7846 touchscreen input
+non-blocking.
 """
 
-import struct
+import evdev
+from evdev import ecodes
+
+from pie_core.touch_calibration import TouchCalibration
+
 
 
 class TouchInput:
 
 
-    def __init__(self, device="/dev/input/event0"):
+    def __init__(self):
 
-        self.device = device
-
-        self.file = open(
-            device,
-            "rb"
+        self.device = evdev.InputDevice(
+            "/dev/input/event0"
         )
+
+        self.calibration = TouchCalibration()
 
         self.x = 0
         self.y = 0
@@ -26,42 +30,59 @@ class TouchInput:
 
     def read(self):
 
-        data = self.file.read(24)
+        try:
 
-        if len(data) != 24:
+            events = self.device.read_one()
+
+
+            if events is None:
+
+                return None
+
+
+
+            if events.type == ecodes.EV_ABS:
+
+
+                if events.code == ecodes.ABS_X:
+
+                    self.x = events.value
+
+
+                elif events.code == ecodes.ABS_Y:
+
+                    self.y = events.value
+
+
+
+            elif events.type == ecodes.EV_KEY:
+
+
+                if events.code == ecodes.BTN_TOUCH:
+
+
+                    cx, cy = self.calibration.convert(
+                        self.x,
+                        self.y
+                    )
+
+
+                    return {
+
+                        "x": cx,
+
+                        "y": cy,
+
+                        "pressed": events.value
+
+                    }
+
+
+
+        except Exception:
+
             return None
 
-
-        (
-            tv_sec,
-            tv_usec,
-            ev_type,
-            ev_code,
-            value
-        ) = struct.unpack(
-            "llHHI",
-            data
-        )
-
-
-        # Absolute coordinates
-        if ev_type == 3:
-
-            if ev_code == 0:
-                self.x = value
-
-            elif ev_code == 1:
-                self.y = value
-
-
-        # Touch press/release
-        if ev_type == 1:
-
-            return {
-                "x": self.x,
-                "y": self.y,
-                "pressed": value
-            }
 
 
         return None
