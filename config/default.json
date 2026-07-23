@@ -1,0 +1,22 @@
+{
+    "system": {
+        "name": "P.I.E.",
+        "version": "0.0.1",
+        "first_boot": true
+    },
+
+    "display": {
+        "width": 480,
+        "height": 320,
+        "rotation": 90,
+        "driver": "ILI9486"
+    },
+
+    "theme": {
+        "current": "default"
+    },
+
+    "debug": {
+        "enabled": true
+    }
+}
